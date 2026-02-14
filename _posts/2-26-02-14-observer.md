@@ -1,0 +1,191 @@
+---
+layout: post
+title: "The Observer Pattern Saved My Game Architecture"
+date: 2026-02-13
+tag: software design
+---
+
+I've been building a 2D turn-based strategy game — think tile grids, unit movement, fog of war. Early on, the codebase was manageable. Then I added combat. Then terrain effects. Then a UI that needed to react to all of it. Within a week, my controller class had its fingers in everything, the model was calling rendering code directly, and adding a single feature meant editing five files. The architecture was collapsing under its own weight.
+
+The fix was the **Observer pattern**, and it transformed the way I think about decoupling game systems. Here's what went wrong, and how Observer cleaned it up.
+
+## The Mess: Tight Coupling Without Observer
+
+Let's start with what a naive approach looks like. Say we have a `GameModel` that manages a grid of tiles and units. When a unit moves, several things need to happen: the UI redraws the grid, the fog of war updates, the move log records the action, and the sound system plays a footstep.
+
+Without Observer, the model ends up directly calling all of these systems:
+
+```java
+public class GameModel {
+    private Tile[][] grid;
+    private GameView view;
+    private FogOfWarSystem fog;
+    private MoveLog log;
+    private SoundManager sound;
+
+    public void moveUnit(Unit unit, int toX, int toY) {
+        grid[unit.getX()][unit.getY()].removeUnit();
+        unit.setPosition(toX, toY);
+        grid[toX][toY].placeUnit(unit);
+
+        // model now "knows" about every downstream system
+        view.redrawTile(unit.getX(), unit.getY());
+        view.redrawTile(toX, toY);
+        fog.recalculate(unit);
+        log.record("Moved " + unit.getName() + " to " + toX + "," + toY);
+        sound.play("footstep");
+    }
+}
+```
+
+This works, technically. But it's a nightmare for three reasons.
+
+First, `GameModel` now depends on `GameView`, `FogOfWarSystem`, `MoveLog`, and `SoundManager`. The model — which should be pure game state and logic — is dragging around references to rendering, audio, and logging. You can't test `moveUnit` without mocking four unrelated systems.
+
+Second, adding a new system that cares about unit movement means modifying `GameModel`. Want to add an achievement tracker? Edit `moveUnit`. Want network sync? Edit `moveUnit` again. Every new feature bloats the model with responsibilities it shouldn't have.
+
+Third, and most painfully for game dev: you can't reuse the model with a different view. Want a headless simulation for AI testing? Too bad — the model is hardwired to a specific `GameView` instance.
+
+## The Fix: Observer Pattern
+
+The Observer pattern inverts this dependency. Instead of the model *telling* specific systems what happened, it *announces* that something happened and lets interested parties react on their own terms.
+
+The structure is simple. You define an interface for listeners, have interested classes implement it, and let them register with the model. The model fires events. Listeners handle them. Nobody needs to know about anyone else.
+
+```java
+// the event — a simple data carrier
+public class UnitMovedEvent {
+    private final Unit unit;
+    private final int fromX, fromY, toX, toY;
+
+    public UnitMovedEvent(Unit unit, int fromX, int fromY, int toX, int toY) {
+        this.unit = unit;
+        this.fromX = fromX;
+        this.fromY = fromY;
+        this.toX = toX;
+        this.toY = toY;
+    }
+
+    public Unit getUnit() { return unit; }
+    public int getFromX() { return fromX; }
+    public int getFromY() { return fromY; }
+    public int getToX() { return toX; }
+    public int getToY() { return toY; }
+}
+```
+
+```java
+// the listener interface
+public interface GameEventListener {
+    void onUnitMoved(UnitMovedEvent event);
+}
+```
+
+```java
+// the model — now clean and decoupled
+public class GameModel {
+    private Tile[][] grid;
+    private List<GameEventListener> listeners = new ArrayList<>();
+
+    public void addListener(GameEventListener listener) {
+        listeners.add(listener);
+    }
+
+    public void moveUnit(Unit unit, int toX, int toY) {
+        int fromX = unit.getX(), fromY = unit.getY();
+        grid[fromX][fromY].removeUnit();
+        unit.setPosition(toX, toY);
+        grid[toX][toY].placeUnit(unit);
+
+        UnitMovedEvent event = new UnitMovedEvent(unit, fromX, fromY, toX, toY);
+        for (GameEventListener l : listeners) {
+            l.onUnitMoved(event);
+        }
+    }
+}
+```
+
+Now the model knows *nothing* about views, fog, sound, or logging. It just fires an event and moves on.
+
+## The Controller as Listener
+
+Here's where it gets elegant for game architecture. In MVC, the controller mediates between the model and the view. But in a turn-based game, the controller also needs to *react* to model state changes — not just push commands into the model, but respond when the model's state evolves. The Observer pattern lets the controller wear both hats naturally.
+
+```java
+public class GameController implements GameEventListener {
+    private GameModel model;
+    private GameView view;
+    private FogOfWarSystem fog;
+
+    public GameController(GameModel model, GameView view, FogOfWarSystem fog) {
+        this.model = model;
+        this.view = view;
+        this.fog = fog;
+        model.addListener(this);  // controller subscribes to model events
+    }
+
+    // controller role: handles user input, pushes commands to model
+    public void handleMoveCommand(Unit unit, int toX, int toY) {
+        if (model.isValidMove(unit, toX, toY)) {
+            model.moveUnit(unit, toX, toY);
+        }
+    }
+
+    // listener role: reacts to model changes, updates view + subsystems
+    @Override
+    public void onUnitMoved(UnitMovedEvent e) {
+        view.redrawTile(e.getFromX(), e.getFromY());
+        view.redrawTile(e.getToX(), e.getToY());
+        fog.recalculate(e.getUnit());
+        view.animateMovement(e.getUnit(), e.getFromX(), e.getFromY(),
+                             e.getToX(), e.getToY());
+    }
+}
+```
+
+The controller calls `model.moveUnit()` as a command. The model mutates state and fires an event. The controller *receives* that event as a listener and orchestrates the view response. The model never imports `GameView`. The view never talks to the model. The controller is the single coordination point, but it's reactive instead of procedural.
+
+This dual role — commander and listener — is what makes Observer so powerful in game MVC. Without it, you'd either have the model calling the view directly (breaking MVC) or the controller polling the model for changes every frame (wasteful and error-prone). Observer gives you a clean, event-driven flow where things happen exactly when they need to.
+
+## Scaling It
+
+As the game grows, you extend the listener interface:
+
+```java
+public interface GameEventListener {
+    default void onUnitMoved(UnitMovedEvent e) {}
+    default void onUnitAttacked(UnitAttackedEvent e) {}
+    default void onTurnEnded(TurnEndedEvent e) {}
+    default void onTileRevealed(TileRevealedEvent e) {}
+}
+```
+
+Using Java's `default` methods means existing listeners don't break when you add new event types. Your `MoveLog` can implement only `onUnitMoved` and `onUnitAttacked`; your `SoundManager` can listen for everything. Each system opts into exactly the events it cares about.
+
+```java
+public class MoveLog implements GameEventListener {
+    @Override
+    public void onUnitMoved(UnitMovedEvent e) {
+        log("Moved " + e.getUnit().getName() + " to " +
+            e.getToX() + "," + e.getToY());
+    }
+
+    @Override
+    public void onUnitAttacked(UnitAttackedEvent e) {
+        log(e.getAttacker().getName() + " attacked " +
+            e.getTarget().getName());
+    }
+}
+```
+
+Adding the achievement tracker from earlier? Create a class, implement the interface, register it with the model. Zero changes to `GameModel`, zero changes to the controller, zero risk of breaking existing behavior.
+
+## The Tradeoff
+
+Observer isn't free. Event-driven architectures are harder to debug because the control flow isn't linear — you can't just step through `moveUnit` and see everything that happens, because the consequences are scattered across listeners. In a large system, it can be genuinely difficult to trace why something happened. Event ordering can also bite you if one listener assumes another has already processed the same event.
+
+For a small game with a few systems, you might not need it. But the moment you have more than two things that need to react to model changes — and in any non-trivial game, you will — Observer pays for itself almost immediately. The alternative is a model class that grows a new dependency every week until it's untestable, unreusable, and unfixable.
+
+---
+
+*The Observer pattern is one of the original Gang of Four design patterns. If you want a deeper dive, the relevant chapter in [Head First Design Patterns](https://www.oreilly.com/library/view/head-first-design/9781492077992/) is excellent and uses a similar event-driven example. For Java specifically, the built-in `java.beans.PropertyChangeListener` provides a lightweight Observer implementation if you don't want to roll your own interfaces.*
