@@ -2,6 +2,6 @@ theme: minima
 title: SciStack
 description: My experience and tips as a undergraduate systems engineer
 author: Evan
-
+baseurl: "https://evanli135.github.io/SciStack/"
 markdown: kramdown
 permalink: /:title/
