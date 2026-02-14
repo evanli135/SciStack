@@ -1,0 +1,17 @@
+---
+layout: default
+---
+<h1>Latest Posts</h1>
+<ul class="post-list">
+  {% for post in site.posts %}
+  <li>
+    <a href="{{ post.url | relative_url }}" class="post-card">
+      <div class="post-card-date">{{ post.date | date: "%b %d, %Y" }}{% if post.tag %} &middot; {{ post.tag }}{% endif %}</div>
+      <div class="post-card-title">{{ post.title }}</div>
+      {% if post.excerpt %}
+      <div class="post-card-excerpt">{{ post.excerpt | strip_html | truncatewords: 30 }}</div>
+      {% endif %}
+    </a>
+  </li>
+  {% endfor %}
+</ul>

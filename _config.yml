@@ -2,3 +2,6 @@ theme: minima
 title: SciStack
 description: My experience and tips as a undergraduate systems engineer
 author: Evan
+
+markdown: kramdown
+permalink: /:title/
