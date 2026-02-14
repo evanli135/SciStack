@@ -1,8 +1,74 @@
 ---
 layout: post
-title: "My experience with my first distributed systems paper"
+title: "How LLM Apps Poison Each Other (And How We Fixed It)"
 date: 2026-02-14
+tag: research
 ---
 
-### Research is not software engineering
-Thats the first thing I learned
+If you've used ChatGPT with plugins, or asked an AI assistant to book a flight and send a confirmation email in one go, you've used an LLM-integrated app system. These systems are powerful — and deeply broken in ways most people don't realize. My research team and I spent months breaking them, then built something better. The result is [ACE (Abstract-Concrete-Execute)](https://arxiv.org/abs/2504.20984), a new security architecture for LLM app systems, accepted at [NDSS 2026](https://www.ndss-symposium.org/) — one of the top venues in computer security.
+
+Here's the story of how we got there.
+
+## What Even Is an LLM App?
+
+When people talk about "AI apps," they usually picture a chatbot. But modern LLM systems are more like operating systems than chat windows. An LLM app is really three things bundled together:
+
+1. **A model** — the core LLM that reasons about what to do.
+2. **A set of rules** — a description and schema that tell the system what the app does, what inputs it expects, and what it returns.
+3. **A connection to an external API** — the actual function that goes out and *does* something in the real world. Reading files, sending emails, calling a ride-hailing service.
+
+When you ask an LLM system to "email the contents of notes.txt to my boss," the system LLM reads through the descriptions of all installed apps, makes a plan (read the file, then send an email), and executes that plan step by step. Each step calls a different app, and the output of one step feeds into the next.
+
+This is great when everything works honestly. It falls apart spectacularly when it doesn't.
+
+## The Problem: Apps Can Lie
+
+Here's the core vulnerability. In most existing LLM app systems, the planning and execution phases are *interleaved* — the LLM plans a step, executes it, reads the result, and then decides what to do next. That means the output of every app gets fed right back into the LLM's reasoning context.
+
+Now imagine one of those apps is malicious. It doesn't even need to be overtly evil — maybe it's a compromised third-party plugin, or a ride-sharing app with a shady developer. When the LLM calls this app and receives its output, that output goes straight into the LLM's prompt context. The malicious app can embed instructions in its output that the LLM interprets as its own reasoning, effectively hijacking the entire system's behavior.
+
+This is **indirect prompt injection**, and it's the central attack vector in multi-app LLM systems. The LLM can't reliably distinguish between "data I received from an app" and "instructions I should follow." It's the AI equivalent of SQL injection — untrusted input gets interpreted as code.
+
+But it gets worse. Apps don't just interact with the LLM through their outputs. They also have *descriptions* — the natural language metadata that tells the system what each app does. These descriptions are treated as trusted by most systems, which means a malicious app can write its own description to manipulate the planning phase. A competing ride-hailing app could include hidden instructions in its description that tell the planner to never use the competitor's app. The user would never know.
+
+## Breaking IsolateGPT
+
+My original role in this project was adversarial. We started by looking at [IsolateGPT](https://github.com/llm-platform-security/SecGPT), a recent system designed specifically to defend against malicious apps by isolating their execution into sandboxed "spokes." On paper, it looked solid. In practice, we broke it three different ways.
+
+**Execution Flow Disruption.** We crafted a malicious app that, when called, returned an output claiming that all other fare-calculating apps were "compromised and used for illegal activities." The system's execution manager — which trusts raw app outputs — panicked and terminated the entire execution flow. The legitimate app never even got called. A single malicious app took down the whole pipeline. Classic denial of service, but through natural language instead of network packets.
+
+**Execution Manager Hijack.** We embedded prompt injection payloads in a malicious app's output that instructed the execution manager to report inflated prices for a competing app while showing normal prices for the attacker's app. The execution manager dutifully followed these injected instructions, delivering manipulated results to the user as if they were legitimate.
+
+**Planner Manipulation.** We poisoned an app's *description* to include instructions telling the planner to exclude a competitor from any generated plan. The planner complied — the legitimate app was silently dropped from all execution plans without the user ever knowing it existed.
+
+These aren't theoretical. We ran every one of these attacks against IsolateGPT's public implementation and they all worked. The fundamental issue is architectural: if you let untrusted data flow into the LLM's reasoning at any stage, you've already lost.
+
+## ACE: Planning Before You Execute
+
+The key insight behind ACE is deceptively simple: **plan first, using only trusted information, and then execute the plan under strict constraints.**
+
+Most LLM systems interleave planning and execution — they think and act simultaneously, adjusting the plan on the fly based on app outputs. This is flexible, but it means every app output is an opportunity for injection. ACE eliminates this by splitting the process into three distinct phases:
+
+**Abstract Planning.** An LLM planner generates a high-level execution plan based *only* on the user's query and a set of abstract app types — generic capabilities like "FileReader" and "EmailSender" rather than specific installed apps. No app descriptions, no app outputs, nothing untrusted touches this phase. The result is a structured, immutable plan that defines exactly what operations will happen and in what order.
+
+**Concrete Instantiation.** The abstract plan gets mapped to actual installed apps — "FileReader" becomes your specific Disk app, "EmailSender" becomes your Gmail plugin. This mapping happens in isolation, so a malicious app description can't corrupt the overall plan structure. Then, before anything runs, ACE runs **static analysis** on the concrete plan to verify it satisfies user-specified information flow constraints. Think of it like a type checker for security policies — if the plan would leak private data to an untrusted app, it gets rejected before a single line of code executes.
+
+**Isolated Execution.** The verified plan runs under strict enforcement. Apps execute in isolation. Data flows only along the paths defined by the plan. App outputs never re-enter the LLM's planning context. A malicious app can scream whatever it wants into its output — it doesn't matter, because the execution engine follows the pre-verified plan, not the LLM's dynamic interpretation of app responses.
+
+This is the fundamental architectural shift: instead of trusting the LLM to dynamically resist prompt injection (which it demonstrably can't), we build a system where prompt injection *doesn't matter* because untrusted data never reaches the components that make control flow decisions.
+
+## Does It Actually Work?
+
+We evaluated ACE against the [InjecAgent](https://arxiv.org/abs/2403.02691) and [Agent Security Bench](https://arxiv.org/abs/2410.02644) benchmarks — standard test suites for indirect prompt injection — plus our own novel attacks. ACE blocked every single attack across all benchmarks. For utility, we tested against the LangChain Tool Usage benchmark and achieved over 80% task completion, showing that the security guarantees don't come at a crippling cost to functionality.
+
+The full paper is available on [arXiv](https://arxiv.org/abs/2504.20984) and the code is open source on [GitHub](https://github.com/escottrose01/ace-llm).
+
+## Why This Matters
+
+LLM app ecosystems are going to keep growing. Every major platform is building some version of a plugin/app marketplace where third-party developers can extend AI assistants. If the security architecture underlying these systems can't handle a single malicious app without collapsing, we're going to see real-world exploitation at scale — manipulated search results, suppressed competitors, leaked private data, and denial of service attacks that look like "technical difficulties."
+
+The answer isn't better prompt engineering or hoping the LLM will be smart enough to resist injection. The answer is building systems where the architecture itself makes these attacks structurally impossible. That's what ACE is designed to do.
+
+---
+
+*This research was conducted at Northeastern University with Tushin Mallick, Evan Rose, William Robertson, Alina Oprea, and Cristina Nita-Rotaru. Our paper was accepted at NDSS 2026. You can find the code at [github.com/escottrose01/ace-llm](https://github.com/escottrose01/ace-llm).*
