@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% if page.title %}{{ page.title }} - {% endif %}{{ site.title }}</title>
+  <meta name="description" content="{{ site.description }}">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      line-height: 1.6;
+      color: #333;
+      background: #f9f9f9;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    header {
+      background: white;
+      border-bottom: 1px solid #e1e4e8;
+      margin-bottom: 40px;
+    }
+
+    .header-content {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    .site-title {
+      font-size: 24px;
+      font-weight: 600;
+      color: #0366d6;
+      text-decoration: none;
+    }
+
+    .site-description {
+      color: #586069;
+      font-size: 14px;
+      margin-top: 5px;
+    }
+
+    nav {
+      margin-top: 15px;
+    }
+
+    nav a {
+      color: #586069;
+      text-decoration: none;
+      margin-right: 20px;
+      font-size: 14px;
+    }
+
+    nav a:hover {
+      color: #0366d6;
+    }
+
+    main {
+      background: white;
+      padding: 40px;
+      border-radius: 6px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    h1 {
+      font-size: 32px;
+      margin-bottom: 20px;
+      color: #24292e;
+    }
+
+    .post-list {
+      list-style: none;
+    }
+
+    .post-card {
+      display: block;
+      text-decoration: none;
+      color: inherit;
+      padding: 20px;
+      margin-bottom: 15px;
+      border: 1px solid #e1e4e8;
+      border-radius: 6px;
+      transition: all 0.2s;
+    }
+
+    .post-card:hover {
+      border-color: #0366d6;
+      box-shadow: 0 2px 8px rgba(3,102,214,0.1);
+    }
+
+    .post-card-date {
+      font-size: 14px;
+      color: #586069;
+      margin-bottom: 8px;
+    }
+
+    .post-card-title {
+      font-size: 20px;
+      font-weight: 600;
+      color: #0366d6;
+      margin-bottom: 8px;
+    }
+
+    .post-card-excerpt {
+      font-size: 14px;
+      color: #586069;
+      line-height: 1.5;
+    }
+
+    .post-header {
+      margin-bottom: 30px;
+    }
+
+    .post-meta {
+      font-size: 14px;
+      color: #586069;
+      margin-bottom: 10px;
+    }
+
+    .post-meta-tag {
+      background: #f1f8ff;
+      color: #0366d6;
+      padding: 3px 10px;
+      border-radius: 3px;
+      margin-left: 10px;
+      font-size: 12px;
+    }
+
+    .post-title {
+      font-size: 36px;
+      font-weight: 700;
+      color: #24292e;
+      line-height: 1.2;
+    }
+
+    .post-body {
+      font-size: 16px;
+      line-height: 1.7;
+    }
+
+    .post-body h2 {
+      font-size: 28px;
+      margin-top: 40px;
+      margin-bottom: 15px;
+      color: #24292e;
+    }
+
+    .post-body h3 {
+      font-size: 22px;
+      margin-top: 30px;
+      margin-bottom: 12px;
+      color: #24292e;
+    }
+
+    .post-body p {
+      margin-bottom: 16px;
+    }
+
+    .post-body a {
+      color: #0366d6;
+      text-decoration: none;
+    }
+
+    .post-body a:hover {
+      text-decoration: underline;
+    }
+
+    .post-body strong {
+      font-weight: 600;
+    }
+
+    .post-body code {
+      background: #f6f8fa;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-size: 85%;
+      font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+    }
+
+    .post-body pre {
+      background: #f6f8fa;
+      padding: 16px;
+      border-radius: 6px;
+      overflow-x: auto;
+      margin-bottom: 16px;
+    }
+
+    .post-body pre code {
+      background: none;
+      padding: 0;
+    }
+
+    .post-body ul, .post-body ol {
+      margin-left: 20px;
+      margin-bottom: 16px;
+    }
+
+    .post-body li {
+      margin-bottom: 8px;
+    }
+
+    footer {
+      max-width: 800px;
+      margin: 40px auto 20px;
+      padding: 20px;
+      text-align: center;
+      color: #586069;
+      font-size: 14px;
+    }
+
+    @media (max-width: 768px) {
+      main {
+        padding: 20px;
+      }
+
+      .container {
+        padding: 10px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-content">
+      <a href="{{ '/' | relative_url }}" class="site-title">{{ site.title }}</a>
+      <div class="site-description">{{ site.description }}</div>
+      <nav>
+        <a href="{{ '/' | relative_url }}">Home</a>
+        <a href="{{ '/about' | relative_url }}">About</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="container">
+    <main>
+      {{ content }}
+    </main>
+  </div>
+
+  <footer>
+    <p>&copy; {{ site.time | date: '%Y' }} {{ site.author }}. Powered by Jekyll.</p>
+  </footer>
+</body>
+</html>
