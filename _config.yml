@@ -1,0 +1,20 @@
+theme: minima
+title: "From the Ground Up"
+description: "Distributed systems, security, and the software that holds it all together."
+author: Evan
+```
+
+`minima` is Jekyll's default theme and it looks clean enough out of the box. GitHub Pages builds it automatically — no local setup needed.
+
+**3. Create your first post**
+Make a folder called `_posts/` and add a file with this exact naming format:
+```
+_posts/2026-02-14-your-post-title.md
+
+---
+layout: post
+title: "What Actually Happens When Distributed Systems Disagree"
+date: 2026-02-14
+---
+
+Your content here in markdown...
