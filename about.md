@@ -10,4 +10,4 @@ I'm Evan — a Computer Science student at Northeastern University focused on di
 
 This blog is where I break down systems concepts, share what I've learned from research and industry, and try to make the internals of the software we depend on a little more approachable.
 
-Find me on [GitHub](https://github.com/yourusername) · [LinkedIn](https://linkedin.com/in/yourprofile)
+Find me on [GitHub](https://github.com/evanli135) · [LinkedIn](https://linkedin.com/in/evan-li-ff)
