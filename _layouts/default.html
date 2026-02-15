@@ -15,8 +15,9 @@
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
       line-height: 1.6;
-      color: #333;
-      background: #f9f9f9;
+      color: #1a202c;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
     }
 
     .container {
@@ -26,56 +27,62 @@
     }
 
     header {
-      background: white;
-      border-bottom: 1px solid #e1e4e8;
+      background: linear-gradient(135deg, #4c6fff 0%, #4c51bf 100%);
+      border-bottom: 3px solid #3b4cca;
       margin-bottom: 40px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
     }
 
     .header-content {
       max-width: 800px;
       margin: 0 auto;
-      padding: 20px;
+      padding: 25px 20px;
     }
 
     .site-title {
-      font-size: 24px;
-      font-weight: 600;
-      color: #0366d6;
+      font-size: 28px;
+      font-weight: 700;
+      color: #ffffff;
       text-decoration: none;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.2);
     }
 
     .site-description {
-      color: #586069;
+      color: #e0e7ff;
       font-size: 14px;
-      margin-top: 5px;
+      margin-top: 8px;
     }
 
     nav {
-      margin-top: 15px;
+      margin-top: 18px;
     }
 
     nav a {
-      color: #586069;
+      color: #e0e7ff;
       text-decoration: none;
       margin-right: 20px;
       font-size: 14px;
+      font-weight: 500;
+      transition: color 0.2s;
     }
 
     nav a:hover {
-      color: #0366d6;
+      color: #ffffff;
     }
 
     main {
-      background: white;
+      background: rgba(255, 255, 255, 0.95);
       padding: 40px;
-      border-radius: 6px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+      backdrop-filter: blur(10px);
     }
 
     h1 {
       font-size: 32px;
       margin-bottom: 20px;
-      color: #24292e;
+      color: #4c51bf;
+      font-weight: 700;
     }
 
     .post-list {
@@ -88,78 +95,88 @@
       color: inherit;
       padding: 20px;
       margin-bottom: 15px;
-      border: 1px solid #e1e4e8;
-      border-radius: 6px;
-      transition: all 0.2s;
+      border: 2px solid #c3dafe;
+      border-radius: 8px;
+      transition: all 0.3s;
+      background: linear-gradient(135deg, #ffffff 0%, #f7fafc 100%);
     }
 
     .post-card:hover {
-      border-color: #0366d6;
-      box-shadow: 0 2px 8px rgba(3,102,214,0.1);
+      border-color: #4c6fff;
+      box-shadow: 0 4px 20px rgba(76, 111, 255, 0.25);
+      transform: translateY(-2px);
     }
 
     .post-card-date {
       font-size: 14px;
-      color: #586069;
+      color: #667eea;
       margin-bottom: 8px;
+      font-weight: 500;
     }
 
     .post-card-title {
       font-size: 20px;
       font-weight: 600;
-      color: #0366d6;
+      color: #4c51bf;
       margin-bottom: 8px;
     }
 
     .post-card-excerpt {
       font-size: 14px;
-      color: #586069;
+      color: #4a5568;
       line-height: 1.5;
     }
 
     .post-header {
       margin-bottom: 30px;
+      padding-bottom: 20px;
+      border-bottom: 2px solid #c3dafe;
     }
 
     .post-meta {
       font-size: 14px;
-      color: #586069;
+      color: #667eea;
       margin-bottom: 10px;
+      font-weight: 500;
     }
 
     .post-meta-tag {
-      background: #f1f8ff;
-      color: #0366d6;
-      padding: 3px 10px;
-      border-radius: 3px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: #ffffff;
+      padding: 4px 12px;
+      border-radius: 4px;
       margin-left: 10px;
       font-size: 12px;
+      font-weight: 600;
     }
 
     .post-title {
       font-size: 36px;
       font-weight: 700;
-      color: #24292e;
+      color: #4c51bf;
       line-height: 1.2;
     }
 
     .post-body {
       font-size: 16px;
       line-height: 1.7;
+      color: #2d3748;
     }
 
     .post-body h2 {
       font-size: 28px;
       margin-top: 40px;
       margin-bottom: 15px;
-      color: #24292e;
+      color: #4c51bf;
+      font-weight: 700;
     }
 
     .post-body h3 {
       font-size: 22px;
       margin-top: 30px;
       margin-bottom: 12px;
-      color: #24292e;
+      color: #5a67d8;
+      font-weight: 600;
     }
 
     .post-body p {
@@ -167,20 +184,24 @@
     }
 
     .post-body a {
-      color: #0366d6;
+      color: #4c6fff;
       text-decoration: none;
+      font-weight: 500;
     }
 
     .post-body a:hover {
       text-decoration: underline;
+      color: #667eea;
     }
 
     .post-body strong {
       font-weight: 600;
+      color: #4c51bf;
     }
 
     .post-body code {
-      background: #f6f8fa;
+      background: #ebf4ff;
+      color: #5a67d8;
       padding: 2px 6px;
       border-radius: 3px;
       font-size: 85%;
@@ -188,16 +209,18 @@
     }
 
     .post-body pre {
-      background: #f6f8fa;
+      background: #ebf4ff;
       padding: 16px;
       border-radius: 6px;
       overflow-x: auto;
       margin-bottom: 16px;
+      border: 1px solid #c3dafe;
     }
 
     .post-body pre code {
       background: none;
       padding: 0;
+      color: #4c51bf;
     }
 
     .post-body ul, .post-body ol {
@@ -214,7 +237,7 @@
       margin: 40px auto 20px;
       padding: 20px;
       text-align: center;
-      color: #586069;
+      color: #e0e7ff;
       font-size: 14px;
     }
 
