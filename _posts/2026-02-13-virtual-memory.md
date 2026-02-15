@@ -5,6 +5,9 @@ date: 2026-02-12
 tag: systems
 ---
 
+<img src="/SciStack/assets/memory.png" alt="virtual memory diagram" width="250">
+
+
 Every program you've ever run believes a comforting lie: that it has a vast, contiguous slab of memory all to itself, starting at address zero, stretching as far as it needs. No other program exists. No fragmentation. No conflicts. Just a clean, private address space.
 
 This is virtual memory, and it's one of the most important abstractions in all of systems engineering. Without it, modern computing — multitasking, process isolation, memory safety — simply doesn't work. Here's why it exists and how it actually functions under the hood.
