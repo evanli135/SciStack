@@ -39,6 +39,18 @@
       padding: 25px 20px;
     }
 
+    .site-header-title {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .site-logo {
+      width: 48px;
+      height: 48px;
+      object-fit: contain;
+    }
+
     .site-title {
       font-size: 28px;
       font-weight: 700;
@@ -255,7 +267,10 @@
 <body>
   <header>
     <div class="header-content">
-      <a href="{{ '/' | relative_url }}" class="site-title">{{ site.title }}</a>
+      <div class="site-header-title">
+        <img src="{{ '/assets/logo.png' | relative_url }}" alt="{{ site.title }} Logo" class="site-logo">
+        <a href="{{ '/' | relative_url }}" class="site-title">{{ site.title }}</a>
+      </div>
       <div class="site-description">{{ site.description }}</div>
       <nav>
         <a href="{{ '/' | relative_url }}">Home</a>
